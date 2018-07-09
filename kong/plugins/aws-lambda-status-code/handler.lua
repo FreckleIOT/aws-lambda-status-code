@@ -164,9 +164,10 @@ function AWSLambdaStatusCodeHandler:access(conf)
         headers['Content-Length'] = nil
         body = cjson.encode(resource)
       end
-
+      
       --Set headers returned in JSON body
-      if lambdaHeaders ~= nil then
+      if type(lambdaHeaders) == type({}) then
+
         for k,v in pairs(lambdaHeaders) do
           headers[k] = v
         end

@@ -14,7 +14,7 @@ It's becoming somehow common practice to get Lambda to return responses in this 
 ```json
 {
   "statusCode": 200,
-  "resource": {
+  "body": {
     "foo": "bar"
   }
 }
@@ -31,7 +31,7 @@ You're patching something, lambda would return
 ```json
 {
   "statusCode": 202,
-  "resource": {
+  "body": {
     "foo": "bar"
   }
 }
@@ -51,15 +51,15 @@ local content_type = headers["Content-Type"]
 if content_type:find("application/json", nil, true) then
   params, err = cjson.decode(body)
   local statusCode = params.statusCode
-  local resource   = params.resource
+  local lambdaBody   = params.body
   if statusCode ~= nil then
     ngx.header['X-lambda-original-status'] = res.status
     ngx.status = statusCode
   end
-  if resource ~= nil then
+  if lambdaBody ~= nil then
     -- As we're changing the body size, we can't set this header.
     headers['Content-Length'] = nil
-    body = cjson.encode(resource)
+    body = cjson.encode(lambdaBody)
   end
 end
 ```

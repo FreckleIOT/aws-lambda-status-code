@@ -5,6 +5,7 @@ local aws_v4 = require "kong.plugins.aws-lambda-status-code.v4"
 local responses = require "kong.tools.responses"
 local utils = require "kong.tools.utils"
 local http = require "resty.http"
+local mime = require "mime"
 local cjson = require "cjson.safe"
 local public_utils = require "kong.tools.public"
 
@@ -150,26 +151,33 @@ function AWSLambdaStatusCodeHandler:access(conf)
     ngx.status = res.status
     local params = cjson.null
     local content_type = headers["Content-Type"]
+    
     if content_type:find("application/json", nil, true) then
       params, err = cjson.decode(body)
       local statusCode = params.statusCode
-      local resource   = params.resource
+      local lambdaBody   = params.body
       local lambdaHeaders = params.headers
       if statusCode ~= nil then
         ngx.header['X-lambda-original-status'] = res.status
         ngx.status = statusCode
-      end
-      if resource ~= nil then
-        -- As we're changing the body size, we can't set this header.
-        headers['Content-Length'] = nil
-        body = cjson.encode(resource)
-      end
-      
+      end      
       --Set headers returned in JSON body
       if type(lambdaHeaders) == type({}) then
 
         for k,v in pairs(lambdaHeaders) do
           headers[k] = v
+        end
+      end
+
+      if lambdaBody ~= nil then
+        -- As we're changing the body size, we can't set this header.
+        headers['Content-Length'] = nil
+        if type(lambdaHeaders) == type({}) and lambdaHeaders['Content-Type'] == "image/png" then
+          --For images, we need to decode them in base64 before sending to the browser
+          body = mime.unb64(lambdaBody)
+        else
+          -- For the more common data type of JSON encode as JSON
+          body = cjson.encode(lambdaBody)
         end
       end
     end
@@ -186,6 +194,6 @@ function AWSLambdaStatusCodeHandler:access(conf)
 end
 
 AWSLambdaStatusCodeHandler.PRIORITY = 750
-AWSLambdaStatusCodeHandler.VERSION = "0.1.0"
+AWSLambdaStatusCodeHandler.VERSION = "0.2.0"
 
 return AWSLambdaStatusCodeHandler

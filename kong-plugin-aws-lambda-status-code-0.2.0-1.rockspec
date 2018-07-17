@@ -11,13 +11,13 @@ local pluginName = "aws-lambda-status-code"
 supported_platforms = {"linux", "macosx"}
 source = {
   -- these are initially not required to make it work
-  url = "git://github.com/iyp-uk/aws-lambda-status-code",
+  url = "git://github.com/FreckleIOT/aws-lambda-status-code",
   tag = "0.2.0"
 }
 
 description = {
   summary = "Kong custom plugin for changing AWS Lambda response status code based on a property in the body",
-  homepage = "https://github.com/iyp-uk/aws-lambda-status-code",
+  homepage = "https://github.com/FreckleIOT/aws-lambda-status-code",
   license = "MIT"
 }
 

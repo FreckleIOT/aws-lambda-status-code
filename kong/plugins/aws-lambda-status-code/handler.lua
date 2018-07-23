@@ -14,6 +14,7 @@ local ngx_req_read_body    = ngx.req.read_body
 local ngx_req_get_uri_args = ngx.req.get_uri_args
 local ngx_req_get_headers  = ngx.req.get_headers
 local ngx_encode_base64    = ngx.encode_base64
+local ngx_escape_uri       = ngx.escape_uri
 
 local new_tab
 do
@@ -52,8 +53,13 @@ function AWSLambdaStatusCodeHandler:access(conf)
     end
 
     if conf.forward_request_uri then
-      upstream_body.request_uri      = var.request_uri
-      upstream_body.request_uri_args = ngx_req_get_uri_args()
+      upstream_body.request_uri = var.request_uri
+
+      local escaped_uri_args = {}
+      for i,v in pairs(ngx_req_get_uri_args()) do
+        escaped_uri_args[i] = ngx_escape_uri(v)
+      end
+      upstream_body.request_uri_args = escaped_uri_args
     end
 
     if conf.forward_request_body then
